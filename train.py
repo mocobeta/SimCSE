@@ -236,6 +236,7 @@ class OurTrainingArguments(TrainingArguments):
                 torch.distributed.init_process_group(backend="nccl")
             device = torch.device("cuda", self.local_rank)
             self._n_gpu = 1
+        self.distributed_state = None
 
         if device.type == "cuda":
             torch.cuda.set_device(device)
