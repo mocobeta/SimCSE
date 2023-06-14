@@ -172,8 +172,8 @@ class CLTrainer(Trainer):
 
                 # Only save model when it is the best one
                 self.save_model(output_dir)
-                if self.deepspeed:
-                    self.deepspeed.save_checkpoint(output_dir)
+                #if self.args.deepspeed:
+                #    self.args.deepspeed.save_checkpoint(output_dir)
 
                 # Save optimizer and scheduler
                 if self.sharded_ddp:
@@ -185,7 +185,7 @@ class CLTrainer(Trainer):
                     with warnings.catch_warnings(record=True) as caught_warnings:
                         xm.save(self.lr_scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
                         reissue_pt_warnings(caught_warnings)
-                elif self.is_world_process_zero() and not self.deepspeed:
+                elif self.is_world_process_zero() and not self.args.deepspeed:
                     # deepspeed.save_checkpoint above saves model/optim/sched
                     torch.save(self.optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
                     with warnings.catch_warnings(record=True) as caught_warnings:
@@ -214,8 +214,8 @@ class CLTrainer(Trainer):
                 self.store_flos()
 
             self.save_model(output_dir)
-            if self.deepspeed:
-                self.deepspeed.save_checkpoint(output_dir)
+            #if self.args.deepspeed:
+            #    self.args.deepspeed.save_checkpoint(output_dir)
 
             # Save optimizer and scheduler
             if self.sharded_ddp:
@@ -227,7 +227,7 @@ class CLTrainer(Trainer):
                 with warnings.catch_warnings(record=True) as caught_warnings:
                     xm.save(self.lr_scheduler.state_dict(), os.path.join(output_dir, "scheduler.pt"))
                     reissue_pt_warnings(caught_warnings)
-            elif self.is_world_process_zero() and not self.deepspeed:
+            elif self.is_world_process_zero() and not self.args.deepspeed:
                 # deepspeed.save_checkpoint above saves model/optim/sched
                 torch.save(self.optimizer.state_dict(), os.path.join(output_dir, "optimizer.pt"))
                 with warnings.catch_warnings(record=True) as caught_warnings:
@@ -302,15 +302,15 @@ class CLTrainer(Trainer):
             num_train_epochs = 1
             num_update_steps_per_epoch = max_steps
 
-        if self.args.deepspeed:
-            model, optimizer, lr_scheduler = init_deepspeed(self, num_training_steps=max_steps)
-            self.model = model.module
-            self.model_wrapped = model  # will get further wrapped in DDP
-            self.deepspeed = model  # DeepSpeedEngine object
-            self.optimizer = optimizer
-            self.lr_scheduler = lr_scheduler
-        else:
-            self.create_optimizer_and_scheduler(num_training_steps=max_steps)
+        #if self.args.deepspeed:
+        #    model, optimizer, lr_scheduler = init_deepspeed(self, num_training_steps=max_steps)
+        #    self.model = model.module
+        #    self.model_wrapped = model  # will get further wrapped in DDP
+        #    self.args.deepspeed = model  # DeepSpeedEngine object
+        #    self.optimizer = optimizer
+        #    self.lr_scheduler = lr_scheduler
+        #else:
+        self.create_optimizer_and_scheduler(num_training_steps=max_steps)
 
         self.state = TrainerState()
         self.state.is_hyper_param_search = trial is not None
@@ -543,10 +543,10 @@ class CLTrainer(Trainer):
                 state_dict = torch.load(os.path.join(self.state.best_model_checkpoint, WEIGHTS_NAME))
                 self.model.load_state_dict(state_dict)
 
-            if self.deepspeed:
-                self.deepspeed.load_checkpoint(
-                    self.state.best_model_checkpoint, load_optimizer_states=False, load_lr_scheduler_states=False
-                )
+            #if self.args.deepspeed:
+            #    self._load_checkpoint(
+            #        self.state.best_model_checkpoint, load_optimizer_states=False, load_lr_scheduler_states=False
+            #    )
 
         metrics = speed_metrics("train", start_time, self.state.max_steps)
         if self._total_flos is not None:
